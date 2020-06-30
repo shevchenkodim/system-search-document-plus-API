@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Task 1</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="row">
+        <div class="col">
+            {% block navbar %}
+            {% include 'navbar.html' %}
+            {% endblock navbar %}
+        </div>
+    </div>
+
+    <div class="mt-3 ml-5 mr-5">
+        {% include 'messages.html' %}
+    </div>
+
+    <div class="row m-3 ml-5 mr-5">
+        <div class="card w-100">
+            <div class="card-header">
+                {% block header %}
+                Введите серию и номер искомого документа
+                {% endblock %}
+            </div>
+            <div class="card-body">
+                {% block body %}
+                <div class="row">
+                    <div class="col-4">
+                        <label for="id_choice_format">Выберите формат ввода данных</label>
+                        <select id="id_choice_format" class="form-control">
+                            <option value="">-----------</option>
+                            <option value="CCXXXXXX">CCXXXXXX</option>
+                            <option value="CC XXXXXX">CC XXXXXX</option>
+                        </select>
+                    </div>
+                    <div class="col-8" id="id_form_div">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div id="table-document-content" class="col-12">
+
+                    </div>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    {% block js %}
+    <script>
+        const form_div = document.getElementById('id_form_div')
+        const table_content = document.getElementById('table-document-content')
+        const choice_format = document.getElementById('id_choice_format')
+        choice_format.addEventListener('change', loadNewForm)
+
+        const seriesSeparatelyNumber = `
+                <form id="series_separate_number_form" action="{% url 'document_search' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-5">
+                            <label for="id_document_series">Серия</label>
+                            <input id="id_document_series" type="text" class="form-control" placeholder="">
+                        </div>
+                        <div class="col-5">
+                            <label for="id_document_number">Номер документа</label>
+                            <input id="id_document_number" type="text" class="form-control" placeholder="">
+                        </div>
+                        <div class="col-2 d-flex justify-content-center align-items-end">
+                            <button id="id_submit" class="btn btn-primary" type="submit">Поиск</button>
+                        </div>
+                    </div>
+                </form>`
+
+        const seriesWithNumberForm = `
+                <form id="series_with_number_form" action="{% url 'document_search' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-5">
+                            <label for="id_document_series_and_number">Серия и номер документа</label>
+                            <input id="id_document_series_and_number" type="text" class="form-control"
+                                placeholder="">
+                        </div>
+                        <div class="col-2 d-flex justify-content-center align-items-end">
+                            <button id="id_submit" class="btn btn-primary" type="submit">Поиск</button>
+                        </div>
+                    </div>
+                </form>`
+
+        function loadNewForm(event) {
+            event.preventDefault()
+
+            table_content.innerHTML = ''
+
+            if (choice_format.value == 'CCXXXXXX') {
+                form_div.innerHTML = seriesWithNumberForm
+
+                const series_with_number_form = document.getElementById('series_with_number_form')
+                series_with_number_form.addEventListener('submit', (event) => {
+                    event.preventDefault()
+                    let series_and_number = document.getElementById('id_document_series_and_number')
+
+                    url = series_with_number_form.getAttribute('action')
+
+                    fetch(url + '?series_and_number=' + series_and_number.value)
+                        .then((response) => {
+                            return response.text();
+                        })
+                        .then(function (html) {
+                            table_content.innerHTML = html
+                        })
+                })
+            }
+            if (choice_format.value == 'CC XXXXXX') {
+                form_div.innerHTML = seriesSeparatelyNumber
+                const series_separate_number_form = document.getElementById('series_separate_number_form')
+                series_separate_number_form.addEventListener('submit', (event) => {
+                    event.preventDefault()
+                    let series = document.getElementById('id_document_series')
+
+                    let number = document.getElementById('id_document_number')
+
+                    url = series_separate_number_form.getAttribute('action')
+
+                    fetch(url + '?series=' + series.value + '&number=' + number.value)
+                        .then((response) => {
+                            return response.text();
+                        })
+                        .then(function (html) {
+                            table_content.innerHTML = html
+                        })
+                })
+            }
+            if (choice_format.value == '') {
+                form_div.innerHTML = ''
+            }
+        }
+    </script>
+    {% endblock %}
+</body>
+
+</html>

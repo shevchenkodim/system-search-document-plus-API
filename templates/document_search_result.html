@@ -1,0 +1,34 @@
+{% load static %}
+
+{% if documents %}
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Идентификатор</th>
+            <th scope="col">Серия док.</th>
+            <th scope="col">Номер док.</th>
+            <th scope="col">Тип док.</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Дата события</th>
+            <th scope="col">Дата записи</th>
+            <th scope="col">Орган регистрации события</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in documents %}
+        <tr>
+            <td>{{ document.identifier }}</td>
+            <td>{{ document.document_series }}</td>
+            <td>{{ document.document_number }}</td>
+            <td>{{ document.document_type.name }}</td>
+            <td>{{ document.status }}</td>
+            <td>{{ document.event_date|date:"d.m.Y" }}</td>
+            <td>{{ document.date_of_recording }}</td>
+            <td>{{ document.registration_authority }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+Нету потеряных данных по указаной серии и номеру документа
+{% endif %}
